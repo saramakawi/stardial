@@ -1,16 +1,21 @@
-import type { PlanetPosition } from '../lib/astronomy';
+import type { PlanetPosition, Aspect } from '../lib/astronomy';
 import { ZODIAC_SYMBOLS } from '../lib/astronomy';
 
 interface Props {
   positions: PlanetPosition[];
+  aspects?: Aspect[];
   size?: number;
 }
 
-export default function ZodiacWheel({ positions, size = 500 }: Props) {
+export default function ZodiacWheel({ positions, aspects = [], size = 500 }: Props) {
   const center = size / 2;
-  const outerRadius = size / 2 - 10;
-  const signRadius = outerRadius - 30;
-  const planetRadius = outerRadius - 80;
+  const outerRadius = size / 2 - 12;
+  const hatchOuter = outerRadius;
+  const hatchInner = outerRadius - 14;       // thin hatched band at the rim
+  const signRadius = outerRadius - 14;        // ring the sign glyphs sit on
+  const signInner = signRadius - 40;          // inner edge of the sign band
+  const planetRadius = signInner - 46;        // where planets are placed
+  const aspectRadius = planetRadius - 24;
 
   const pointAt = (longitude: number, radius: number) => {
     const angle = ((-longitude - 90) * Math.PI) / 180;
@@ -20,74 +25,119 @@ export default function ZodiacWheel({ positions, size = 500 }: Props) {
     };
   };
 
+  // Aspect line color by family, in antique tones
+  const aspectColor = (type: string) => {
+    if (type === 'Trine' || type === 'Sextile') return 'var(--teal-ink)';   // harmonious
+    if (type === 'Square' || type === 'Opposition') return 'var(--rust)';   // tense
+    return 'var(--sepia)';                                                   // conjunction
+  };
+
+  const longitudeOf = (name: string) =>
+    positions.find((p) => p.name === name)!.longitude;
+
+  // Build the 12 sign-division angles
+  const divisions = Array.from({ length: 12 }, (_, i) => i * 30);
+
+  // Hatching ticks around the rim (engraving texture) — one every 2°
+  const hatchTicks = Array.from({ length: 180 }, (_, i) => i * 2);
+
+
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-xl mx-auto">
-      <defs>
-        <filter id="planet-glow" x="-60%" y="-60%" width="220%" height="220%">
-          <feGaussianBlur stdDeviation="5" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-        <filter id="ring-glow" x="-5%" y="-5%" width="110%" height="110%">
-          <feGaussianBlur stdDeviation="2" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
+    <svg
+      viewBox={`0 0 ${size} ${size}`}
+      className="w-full max-w-xl mx-auto"
+      role="img"
+      aria-label="Engraved zodiac wheel showing planetary positions"
+    >
+      <title>Zodiac wheel</title>
+      <desc>An antique-style engraving of the zodiac with planets at their computed positions.</desc>
 
-      {/* Outer ring with glow */}
+      {/* ---- Concentric rings ---- */}
       <circle cx={center} cy={center} r={outerRadius}
-        fill="none" stroke="var(--accent)" strokeWidth="1.5" opacity="0.45"
-        filter="url(#ring-glow)" />
-      <circle cx={center} cy={center} r={signRadius}
-        fill="none" stroke="var(--accent)" strokeWidth="0.5" opacity="0.2" />
+        fill="none" stroke="var(--sepia)" strokeWidth="1" />
+      <circle cx={center} cy={center} r={hatchInner}
+        fill="none" stroke="var(--sepia)" strokeWidth="0.5" />
+      <circle cx={center} cy={center} r={signInner}
+        fill="none" stroke="var(--sepia)" strokeWidth="0.75" />
+      <circle cx={center} cy={center} r={planetRadius + 18}
+        fill="none" stroke="var(--sepia-faint)" strokeWidth="0.5" />
+      <circle cx={center} cy={center} r={aspectRadius}
+        fill="none" stroke="var(--sepia-faint)" strokeWidth="0.5" />
 
-      {/* Inner decorative circle */}
-      <circle cx={center} cy={center} r={planetRadius - 28}
-        fill="none" stroke="var(--accent)" strokeWidth="0.5" opacity="0.12" />
-
-      {/* 12 sign divisions + glyphs */}
-      {ZODIAC_SYMBOLS.map((symbol, i) => {
-        const divisionLong = i * 30;
-        const edge = pointAt(divisionLong, outerRadius);
-        const inner = pointAt(divisionLong, signRadius);
-        const labelPos = pointAt(divisionLong + 15, (outerRadius + signRadius) / 2);
+      {/* ---- Rim hatching (fine engraving ticks) ---- */}
+      {hatchTicks.map((deg, i) => {
+        const a = pointAt(deg, hatchOuter);
+        const b = pointAt(deg, hatchInner);
+        // every 15th tick (every 30°) is omitted; division lines handle those
         return (
-          <g key={i}>
-            <line x1={inner.x} y1={inner.y} x2={edge.x} y2={edge.y}
-              stroke="var(--accent)" strokeWidth="0.5" opacity="0.25" />
+          <line key={`h${i}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y}
+            stroke="var(--sepia)" strokeWidth="0.4" opacity="0.55" />
+        );
+      })}
+
+      {/* ---- 12 sign divisions + serif glyphs ---- */}
+      {divisions.map((deg, i) => {
+        const outer = pointAt(deg, outerRadius);
+        const inner = pointAt(deg, signInner);
+        const labelPos = pointAt(deg + 15, (signRadius + signInner) / 2);
+        return (
+          <g key={`d${i}`}>
+            <line x1={inner.x} y1={inner.y} x2={outer.x} y2={outer.y}
+              stroke="var(--sepia)" strokeWidth="0.75" />
             <text x={labelPos.x} y={labelPos.y}
               textAnchor="middle" dominantBaseline="middle"
-              fontSize="18" fill="var(--accent)" opacity="0.8">
-              {symbol}
+              fontSize="22" fill="var(--ink)"
+              style={{ fontFamily: 'var(--font-display)' }}>
+              {ZODIAC_SYMBOLS[i]}
             </text>
           </g>
         );
       })}
 
-      {/* Planets with glow */}
+      {/* ---- Aspect lines across the chart (drawn before planets) ---- */}
+      {aspects.map((asp, i) => {
+        const a = pointAt(longitudeOf(asp.planetA), aspectRadius);
+        const b = pointAt(longitudeOf(asp.planetB), aspectRadius);
+        const tense = asp.type === 'Square' || asp.type === 'Opposition';
+        return (
+          <line key={`a${i}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y}
+            stroke={aspectColor(asp.type)} strokeWidth="0.75"
+            opacity="0.7"
+            strokeDasharray={tense ? '3 3' : undefined} />
+        );
+      })}
+
+      {/* ---- Planets as ink-on-paper marks ---- */}
       {positions.map((planet) => {
         const pos = pointAt(planet.longitude, planetRadius);
         return (
-          <g key={planet.name} filter="url(#planet-glow)">
-            <circle cx={pos.x} cy={pos.y} r="15"
-              fill="rgb(var(--panel) / 0.3)" stroke="var(--accent)" strokeWidth="0.8" opacity="0.9" />
+          <g key={planet.name}>
+            {/* small tick from the sign ring to the planet, like a pointer */}
+            {/* <circle cx={pos.x} cy={pos.y} r="15"
+              fill="var(--paper)" stroke="var(--ink)" strokeWidth="0.75" /> */}
             <text x={pos.x} y={pos.y}
               textAnchor="middle" dominantBaseline="middle"
-              fontSize="14" fill="var(--accent)">
+              fontSize="20" fill="var(--ink)"
+              style={{ fontFamily: 'var(--font-display)' }}>
               {planet.symbol}
             </text>
+            {/* retrograde mark */}
+            {planet.retrograde && (
+              <text x={pos.x + 13} y={pos.y - 11}
+                textAnchor="middle" dominantBaseline="middle"
+                fontSize="10" fill="var(--rust)"
+                style={{ fontFamily: 'var(--font-display)' }}>
+                ℞
+              </text>
+            )}
           </g>
         );
       })}
 
-      {/* Center dot */}
-      <circle cx={center} cy={center} r="3"
-        fill="var(--accent)" opacity="0.4" />
+      {/* ---- Center ornament ---- */}
+      <circle cx={center} cy={center} r="3" fill="var(--sepia)" />
+      <circle cx={center} cy={center} r="7"
+        fill="none" stroke="var(--sepia)" strokeWidth="0.5" />
     </svg>
   );
 }

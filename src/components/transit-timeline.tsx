@@ -15,29 +15,71 @@ export default function TransitTimeline({ planet, days = 90 }: { planet: PlanetN
     return points;
   }, [planet, days]);
 
+  // Pull theme colors at render time so the chart matches the atlas palette.
+  const ink = 'var(--ink)';
+  const inkSoft = 'var(--ink-soft)';
+  const sepiaFaint = 'var(--sepia-faint)';
+
+  // Recharts needs concrete color strings for some props (SVG attrs accept
+  // CSS vars, but tick fills are inline styles that resolve fine via var()).
+  const labelStyle = {
+    fontFamily: 'var(--font-body)',
+    fill: inkSoft,
+    fontSize: 12,
+  };
+
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={data}>
-        <CartesianGrid stroke="rgba(196, 160, 232, 0.1)" />
+      <LineChart data={data} margin={{ top: 8, right: 16, bottom: 4, left: -8 }}>
+        {/* hairline grid, faint sepia, no vertical clutter */}
+        <CartesianGrid
+          stroke={sepiaFaint}
+          strokeWidth={0.5}
+          vertical={false}
+        />
         <XAxis
           dataKey="date"
-          stroke="rgba(196, 160, 232, 0.3)"
-          tick={{ fill: 'rgba(196, 160, 232, 0.6)', fontSize: 12 }}
+          stroke={inkSoft}
+          strokeWidth={0.75}
+          tick={labelStyle}
+          tickLine={{ stroke: sepiaFaint }}
+          interval="preserveStartEnd"
+          minTickGap={28}
         />
         <YAxis
           domain={[0, 360]}
-          stroke="rgba(196, 160, 232, 0.3)"
-          tick={{ fill: 'rgba(196, 160, 232, 0.6)', fontSize: 12 }}
+          ticks={[0, 90, 180, 270, 360]}
+          stroke={inkSoft}
+          strokeWidth={0.75}
+          tick={labelStyle}
+          tickLine={{ stroke: sepiaFaint }}
         />
         <Tooltip
+          cursor={{ stroke: sepiaFaint, strokeWidth: 1 }}
           contentStyle={{
-            background: '#0a0718',
-            border: '1px solid rgba(196, 160, 232, 0.3)',
-            borderRadius: 8,
-            color: '#ede8ff',
+            background: 'var(--paper)',
+            border: '1px solid var(--sepia)',
+            borderRadius: 2,
+            fontFamily: 'var(--font-body)',
+            color: 'var(--ink)',
+            boxShadow: 'none',
+          }}
+          labelStyle={{ color: 'var(--ink-soft)', fontFamily: 'var(--font-display)' }}
+          formatter={(value) => [`${Number(value)}°`, 'Longitude']}
+        />
+        <Line
+          type="monotone"
+          dataKey="longitude"
+          stroke={ink}
+          strokeWidth={1.25}
+          dot={false}
+          activeDot={{
+            r: 3.5,
+            fill: 'var(--paper)',
+            stroke: 'var(--ink)',
+            strokeWidth: 1,
           }}
         />
-        <Line type="monotone" dataKey="longitude" stroke="var(--accent, #c4a0e8)" dot={false} strokeWidth={2} />
       </LineChart>
     </ResponsiveContainer>
   );

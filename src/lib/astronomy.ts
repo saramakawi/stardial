@@ -10,6 +10,7 @@ export interface PlanetPosition {
   sign: string;        // which zodiac sign
   degreeInSign: number;// 0–30° within that sign
   symbol: string;      // glyph for the planet
+  retrograde: boolean; // retrograde indicator
 }
 
 
@@ -37,8 +38,8 @@ export const ZODIAC_SIGNS = [
 ];
 
 export const ZODIAC_SYMBOLS = [
-  '♈', '♉', '♊', '♋', '♌', '♍',
-  '♎', '♏', '♐', '♑', '♒', '♓',
+  '♈\uFE0E', '♉\uFE0E', '♊\uFE0E', '♋\uFE0E', '♌\uFE0E', '♍\uFE0E',
+  '♎\uFE0E', '♏\uFE0E', '♐\uFE0E', '♑\uFE0E', '♒\uFE0E', '♓\uFE0E',
 ];
 
 // Convert a 0–360° longitude into sign + degree-within-sign
@@ -53,12 +54,26 @@ function longitudeToSign(longitude: number) {
 
 // THE CORE FUNCTION: compute all planet positions for a given date
 export function getPlanetPositions(date: Date): PlanetPosition[] {
+  // A point slightly later, to measure direction of motion
+  const later = new Date(date.getTime() + 24 * 60 * 60 * 1000); // +1 day
+
   return (Object.keys(PLANET_BODIES) as PlanetName[]).map((name) => {
-    // Geocentric position vector (as seen from Earth), then convert to ecliptic
     const vector = GeoVector(PLANET_BODIES[name], date, true);
-    const longitude = Ecliptic(vector).elon;   // ecliptic longitude in degrees, 0–360
+    const longitude = Ecliptic(vector).elon;
+
+    // Longitude one day later, to detect direction
+    const laterVector = GeoVector(PLANET_BODIES[name], later, true);
+    const laterLongitude = Ecliptic(laterVector).elon;
+
+    // Handle the 360→0 wrap: normalize the delta to -180..180
+    let delta = laterLongitude - longitude;
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
+    // Retrograde if moving backward. Sun and Moon never retrograde.
+    const retrograde = delta < 0 && name !== 'Sun' && name !== 'Moon';
+
     const { sign, signIndex, degreeInSign } = longitudeToSign(longitude);
-    return { name, longitude, sign, signIndex, degreeInSign, symbol: PLANET_SYMBOLS[name] };
+    return { name, longitude, sign, signIndex, degreeInSign, symbol: PLANET_SYMBOLS[name], retrograde };
   });
 }
 
@@ -95,4 +110,53 @@ export function getMoonPhase(date: Date): MoonPhase {
   const { name, symbol } = phases[index];
 
   return { phaseAngle, illumination, name, symbol };
+}
+
+export interface Aspect {
+  planetA: PlanetName;
+  planetB: PlanetName;
+  type: string;        // 'Conjunction', 'Trine', etc.
+  angle: number;       // the ideal angle (0, 60, 90, 120, 180)
+  orb: number;         // how far from exact, in degrees
+  symbol: string;
+}
+
+const ASPECT_TYPES = [
+  { type: 'Conjunction', angle: 0,   symbol: '☌', orb: 8 },
+  { type: 'Sextile',     angle: 60,  symbol: '⚹', orb: 4 },
+  { type: 'Square',      angle: 90,  symbol: '□', orb: 6 },
+  { type: 'Trine',       angle: 120, symbol: '△', orb: 6 },
+  { type: 'Opposition',  angle: 180, symbol: '☍', orb: 8 },
+];
+
+// Smallest angle between two longitudes (0–180)
+function angularDifference(a: number, b: number): number {
+  const diff = Math.abs(a - b) % 360;
+  return diff > 180 ? 360 - diff : diff;
+}
+
+export function getAspects(positions: PlanetPosition[]): Aspect[] {
+  const aspects: Aspect[] = [];
+  // Compare every unique pair of planets
+  for (let i = 0; i < positions.length; i++) {
+    for (let j = i + 1; j < positions.length; j++) {
+      const sep = angularDifference(positions[i].longitude, positions[j].longitude);
+      // Does this separation match any aspect within its orb?
+      for (const asp of ASPECT_TYPES) {
+        const orb = Math.abs(sep - asp.angle);
+        if (orb <= asp.orb) {
+          aspects.push({
+            planetA: positions[i].name,
+            planetB: positions[j].name,
+            type: asp.type,
+            angle: asp.angle,
+            orb: Number(orb.toFixed(1)),
+            symbol: asp.symbol,
+          });
+          break; // a pair matches at most one aspect
+        }
+      }
+    }
+  }
+  return aspects;
 }
