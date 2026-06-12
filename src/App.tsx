@@ -83,7 +83,7 @@ function App() {
                   className="atlas-input text-sm"
                 />
               ) : (
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap justify-center gap-2">
                   <input
                     type="date"
                     value={birthDate}

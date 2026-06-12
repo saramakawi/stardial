@@ -55,7 +55,10 @@ body {
 /* ---------- Aged-page vignette (static) ---------- */
 .page-vignette {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100dvh;
   z-index: -1;
   pointer-events: none;
   background: radial-gradient(
