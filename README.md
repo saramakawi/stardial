@@ -41,9 +41,11 @@ That's the whole translation. Everything visual derives from this one mapping.
 
 Each body's ecliptic longitude is an angle, converted to an (x, y) point with trigonometry:
 
+```
   angle = (-longitude - 90) × π/180          // negated for counterclockwise progression
   x = centerX + radius × cos(angle)
   y = centerY + radius × sin(angle)
+```
 
 The sign negation and 90° offset orient the wheel so the signs run counterclockwise in the traditional direction. The same routine places sign glyphs, planets, and aspect endpoints. One function is reused for any different radii.
 
@@ -51,12 +53,14 @@ The sign negation and 90° offset orient the wheel so the signs run counterclock
 
 An aspect is a meaningful angle between two planets. Stardial compares every unique pair (45 pairs for ten bodies), computes the smallest angular separation between them, and flags the pair when that separation falls within a tolerance ("orb") of a major aspect angle.
 
+```
   Aspect         Degrees    Orb
   Conjunction    0°         8°
   Sextile        60°        4°
   Square         90°        6°
   Trine          120°       6°
   Opposition     180°       8°
+```
 
 Matched pairs are drawn as lines across the wheel, colored by family (harmonious vs. tense).
 
@@ -75,6 +79,7 @@ The Moon's phase is a function of its angular separation from the Sun: 0° is a 
 
 Computation is fully separated from presentation. All astronomical logic lives in src/lib/astronomy.ts as pure functions (getPlanetPositions(date), getAspects(positions), getMoonPhase(date)) with no React or DOM dependencies. The React layer only renders the results. This means the math is independently testable and the UI is a shell over a computational core.
 
+```
   src/
   ├── lib/
   │   └── astronomy.ts      # pure computation: positions, aspects, phases
@@ -84,6 +89,7 @@ Computation is fully separated from presentation. All astronomical logic lives i
   │   ├── todays-sky.tsx
   │   └── moon-glyph.tsx    # SVG moon phase
   └── App.tsx               # composition + state
+```
 
 Expensive recomputation is memoized with useMemo, keyed on the selected date — so changing unrelated state never recomputes the ephemeris.
 
@@ -106,18 +112,21 @@ No backend, no API keys, no external data calls — the entire app is static and
 
 ## Running Locally ##
 
+```
   git clone https://github.com/saramakawi/stardial.git
   cd stardial
   npm install
   npm run dev
+```
 
 Then open http://localhost:5173.
 
 To build for production:
 
+```
   npm run build
   npm run preview
-
+```
 
 ## Design ##
 
