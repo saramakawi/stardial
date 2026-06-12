@@ -1,3 +1,6 @@
+// This module provides functions to compute planetary positions, moon phases, 
+// and aspects for a given date using the astronomy-engine library.
+
 import { Body, GeoVector, Ecliptic } from 'astronomy-engine';
 
 export type PlanetName =

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ============================================================
-   STARDIAL — "Celestial Atlas" theme
+   Stardial theme:
    Aged paper + sepia ink. Static, performant, antique-engraving feel.
    No animated blur, no glow filters, no animated gradients.
    ============================================================ */
@@ -42,7 +42,7 @@ body {
   line-height: 1.6;
 }
 
-/* ---------- Static paper texture (cheap; paints once) ---------- */
+/* ---------- Static paper texture ---------- */
 .paper-texture {
   position: fixed;
   inset: 0;
@@ -50,7 +50,6 @@ body {
   pointer-events: none;
   opacity: 0.45;
   mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04 0.09' numOctaves='5'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)' opacity='0.55'/%3E%3C/svg%3E");
 }
 
 /* ---------- Aged-page vignette (static) ---------- */
@@ -67,9 +66,6 @@ body {
 }
 
 /* ---------- Typography helpers ---------- */
-.display {
-  font-family: var(--font-display);
-}
 
 .ink-soft { color: var(--ink-soft); }
 .ink-sepia { color: var(--sepia); }
@@ -93,25 +89,13 @@ body {
 .atlas-title {
   font-family: var(--font-display);
   color: var(--ink);
-  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-size: clamp(3.5rem, 6vw, 4rem);
   font-weight: 600;
   letter-spacing: -0.01em;
   position: relative;
   display: inline-block;
   padding: 0.4rem 2.5rem;
 }
-.atlas-title::before,
-.atlas-title::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60%;
-  height: 1px;
-  background: linear-gradient(to right, transparent, var(--sepia), transparent);
-}
-.atlas-title::before { top: 0; }
-.atlas-title::after  { bottom: 0; }
 
 /* ---------- Plates: opaque paper panels with a double-rule frame ---------- */
 /* The layered box-shadow draws the classic book-plate double border,
@@ -192,30 +176,6 @@ select.atlas-input option {
 .planet-row:last-child { border-bottom: 0; }
 .planet-row:hover {
   background-color: rgba(138, 109, 59, 0.1);
-}
-
-/* ---------- Star-divider, restyled as an ornamental rule ---------- */
-.atlas-divider {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin: 0.5rem 0;
-}
-.atlas-divider::before,
-.atlas-divider::after {
-  content: "";
-  height: 1px;
-  flex: 1;
-  max-width: 140px;
-  background: linear-gradient(to right, transparent, var(--sepia));
-}
-.atlas-divider::after {
-  background: linear-gradient(to left, transparent, var(--sepia));
-}
-.atlas-divider span {
-  color: var(--sepia);
-  font-size: 1.1rem;
 }
 
 /* ---------- Accessibility: honor reduced motion ---------- */

@@ -1,3 +1,5 @@
+// This component renders a transit timeline for a given planet over a specified number of days.
+
 import { useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { getPlanetPositions, type PlanetName } from '../lib/astronomy';
@@ -19,9 +21,6 @@ export default function TransitTimeline({ planet, days = 90 }: { planet: PlanetN
   const ink = 'var(--ink)';
   const inkSoft = 'var(--ink-soft)';
   const sepiaFaint = 'var(--sepia-faint)';
-
-  // Recharts needs concrete color strings for some props (SVG attrs accept
-  // CSS vars, but tick fills are inline styles that resolve fine via var()).
   const labelStyle = {
     fontFamily: 'var(--font-body)',
     fill: inkSoft,

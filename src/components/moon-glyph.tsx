@@ -1,10 +1,10 @@
 interface Props {
-  phaseAngle: number;  // 0–360, from your getMoonPhase
+  phaseAngle: number;  // 0 – 360 degrees from your getMoonPhase
   size?: number;
 }
 
-/**
- * Draws the moon's illuminated fraction as an engraving-style glyph.
+/*
+ * Draws the moon's illuminated fraction as a glyph.
  * phaseAngle: 0 = new, 90 = first quarter, 180 = full, 270 = last quarter.
  */
 export default function MoonGlyph({ phaseAngle, size = 36 }: Props) {
