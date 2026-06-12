@@ -47,7 +47,7 @@ function App() {
 
       <Divider symbol="✦" />
 
-      <main className="max-w-5xl mx-auto px-24 pb-16 space-y-16">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-24 pb-16 space-y-16">
         <TodaysSky />
 
         <Divider symbol="✦" />
@@ -124,7 +124,7 @@ function App() {
                       )}
                     </span>
                   </span>
-                  <span className="text-sm oldstyle-nums" style={{ color: 'var(--rust)' }}>
+                  <span className="text-sm oldstyle-nums whitespace-nowrap" style={{ color: 'var(--rust)' }}>
                     {p.degreeInSign.toFixed(1)}° {p.sign}
                   </span>
                 </div>
@@ -140,7 +140,7 @@ function App() {
             {aspects.map((asp, i) => (
               <div key={i} className="planet-row flex text-sm justify-between items-center py-2.5 border-b border-soft last:border-0">
                 <span>{asp.planetA} {asp.symbol} {asp.planetB}</span>
-                <span className="text-soft">{asp.type} · {asp.orb}° orb</span>
+                <span className="text-soft whitespace-nowrap">{asp.type} · {asp.orb}° orb</span>
               </div>
             ))}
           </div>
